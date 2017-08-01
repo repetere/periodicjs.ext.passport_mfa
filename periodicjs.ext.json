@@ -9,8 +9,11 @@
   "periodic_config": {
     "periodicjs_ext_admin": {
       "Multi-Factor Authentication": [{
-        "link": "/b-admin/ext/passport_mfa",
-        "title": "User Account Management"
+        "link": "/b-admin/ext/passport_mfa/standard_accounts",
+        "title": "Account MFA Management"
+      }, {
+        "link": "/b-admin/ext/passport_mfa/standard_users",
+        "title": "User MFA Management"
       }]
     }
   }
