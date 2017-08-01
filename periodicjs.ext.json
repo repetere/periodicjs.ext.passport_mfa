@@ -6,5 +6,12 @@
   }],
   "periodic_type": 2,
   "periodic_priority": 20,
-  "periodic_config": {}
+  "periodic_config": {
+    "periodicjs_ext_admin": {
+      "Multi-Factor Authentication": [{
+        "link": "/b-admin/ext/passport_mfa",
+        "title": "User Account Management"
+      }]
+    }
+  }
 }
