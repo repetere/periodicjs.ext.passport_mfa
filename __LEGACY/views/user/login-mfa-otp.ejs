@@ -1,0 +1,42 @@
+<% include ../shared/header %>
+<div class="ts-container">
+  <div class="ts-row">
+    <div class="ts-col-span10 ts-col-nofloat ts-screenmd-col-span12 ts-screensm-col-span12 ts-no-heading-margin ts-screenxs-col-span12">
+      <h2 class="text-left">Sign In With Authentication Device</h2>
+
+      <form action="/auth/login-otp" method="post" autocomplete="on" id="login_otp_form" name="login_otp_form" class="ts-form">
+        <input type="hidden" name="_csrf" value=<%= locals.token %> >
+        <div class="ts-row ts-form-row">
+          <label class="ts-label"> Authentication Code: <a href="/extensions/periodicjs.ext.login_mfa/img/ga-example.jpg">(example)</a></label>
+          <input type="text" name="code" id="mfa-code-input" class="ts-col-span12" maxlength="6" placeholder="000000" autocomplete="off"
+ autofocus />
+        </div>
+        <div class="ts-row ts-form-row ts-text-center">
+          <button type="submit" name="submit" class="ts-button ts-text-lg ts-button-accent-color ts-screenxs-width-90 ts-screensm-width-90 ts-screenmd-width-50">
+          <i class="icon-ok icon-white"></i> Authenicate using your MFA Device</button>
+        </div>
+        <div class="ts-row ts-text-center">
+          <p>If you do not have a MFA token, please setup a new device. 
+          <a href="/auth/login-otp-setup">MFA Device Setup</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var init = function(){
+    var wt = setTimeout(function(){    
+      document.querySelector('#mfa-code-input').focus();
+      clearTimeout(wt);
+    },300);
+  }
+  if( window.domLoadEventFired === true){
+    init();
+  }
+  else{
+    window.addEventListener('load',init);
+  }
+
+</script>
+<% include ../shared/footer %>
