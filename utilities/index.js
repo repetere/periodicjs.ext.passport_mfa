@@ -1,3 +1,4 @@
 'use strict';
+const totp = require('./totp');
 
-module.exports = {};
+module.exports = { totp, };

@@ -1,0 +1,31 @@
+<%- include('../../../../app/views/shared/header') %>
+<%- include('../../../../app/views/shared/simple_nav') %>
+<% 
+//  console.log(locals) 
+/* console.log(locals) */ 
+%>
+  <main>
+    <article>
+        <section>
+          <h3>Multi-factor Authentication</h3>
+        </section>
+        <section>
+          <p>Scan this QR Code in <a href="https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8">Google Authenticator</a></p>
+          <!--<p>
+            <%- svg_string %>
+          </p>-->
+          <p>
+            <img width="100%" src="<%- qrImage %>"/>
+          </p>
+        </section>
+        <section>
+          <p>- or enter this key manually -</p>
+          <p><b><%- encodedKey %></b></p>
+        </section>
+        <section>
+          <p>Once you've added your MFA Token, continue to login</p>
+          <a href="/auth/login-otp" class="ts-button ts-text-lg ts-button-accent-color ">Multi-factor login</a>
+        </section>
+    </article>
+  </main>
+<%- include('../../../../app/views/shared/footer') %>

@@ -2,13 +2,11 @@
 
 const periodic = require('periodicjs');
 const extensionRouter = periodic.express.Router();
-const fs = require('fs-extra');
-const path = require('path');
-const packageJson = fs.readJsonSync(path.join(__dirname, '../package.json'));
-const preTransforms = periodic.utilities.middleware.preTransforms(periodic);
+const authRouter = require('./auth');
+const passportExtSettings = periodic.settings.extensions['periodicjs.ext.passport'];
+const auth_route_prefix = passportExtSettings.routing.authenication_route_prefix;
+const auth_route = periodic.utilities.routing.route_prefix(auth_route_prefix);
 
-extensionRouter.all(packageJson.name, preTransforms, (req, res) => {
-  res.send(`EXTENSION ${packageJson.name}`);
-});
+extensionRouter.use(auth_route, authRouter);
 
 module.exports = extensionRouter;

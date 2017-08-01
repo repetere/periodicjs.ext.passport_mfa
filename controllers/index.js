@@ -1,9 +1,7 @@
 'use strict';
 const periodic = require('periodicjs');
+const mfa = require('./mfa');
 
 module.exports = {
-  test: (req, res, next) => {
-    periodic.logger.silly('test middleware');
-    next();
-  }
-}
+  mfa,
+};
