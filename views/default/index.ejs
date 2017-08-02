@@ -1,0 +1,104 @@
+<%- include('../../../../app/views/shared/header') %>
+<%- include('../../../periodicjs.ext.admin/views/shared/nav') %>
+<% 
+const pluralize = periodic.viewHelper.pluralize;
+const entityFromURL = locals.request.parsed.pathname.replace(/\//gi,'');// const entityFromURL = locals.request.originalurl.split('/')[locals.request.originalurl.split('/').length-1];
+const singularEntity = pluralize.singular(entityFromURL);
+const entitytype = singularEntity;
+const items= locals[entityFromURL];
+%>
+
+<!--
+< %- include('../shared/content',{
+	entitytype:singularEntity,
+	items: locals[entityFromURL],
+}); 
+% >
+-->
+
+
+<%
+const capitalize = periodic.viewHelper.capitalize;
+const path = periodic.viewHelper.path;
+// console.log({locals},'items[pluralize(entitytype)]',items[pluralize(entitytype)])
+// console.log({items});
+const hasItems = (
+  items && 
+  items[pluralize(entitytype)] && 
+  items[pluralize(entitytype)].documents.length) ? true:false;
+const entityName = {
+  name: entitytype,
+  plural: pluralize(entitytype),
+  capitalized: (capitalize(entitytype)),
+  pluralCapitalized: pluralize(capitalize(entitytype)),
+};
+const entityPage = {
+  count: (hasItems) ? items[`${entityName.plural}total`] : 0,
+  limit: (hasItems) ? items[`${entitytype}limit`] : 0,
+  totalpages: (hasItems) ? items[`${entityName.plural}totalpages`] : 1,
+  currentpage: (hasItems) ? items[`${entitytype}page_current`] : 1,
+}
+// console.log({entityPage,items});
+%>
+<article>
+  <section>
+    <form method="GET" style="flex-direction:row">
+        <input placeholder="Search <%- entityName.pluralCapitalized %>" name="query" type="text" value="<%- request.query.query %>"/>
+      <div style="display:flex; margin-bottom:1rem;">
+        <a href="<%- path.join(request.baseurl,request.parsed.pathname,'new') %>" style="display:flex;flex:1;align-items:center;padding: 0 0 0 1rem;">Create <%- entityName.capitalized %></a>
+      </div>
+    </form>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th colspan="3">MFA Status</th>
+        </tr>
+      </thead>
+      <tbody>
+      <% if(hasItems){
+        items[pluralize(entitytype)].documents.map(item=>{
+          const itemTitle = (item.identification && item.identification.guid) ? item.identification.guid : item.title || item.name || item.email;
+          const mfaStatus = (item.extensionattributes && item.extensionattributes.passport_mfa && item.extensionattributes.passport_mfa.allow_new_code) ? 'disable':'enable';
+          %>
+          <tr>
+            <td><a href="<%- path.join(request.baseurl,request.parsed.pathname,item._id.toString()).replace('ext/passport_mfa','data') %>"><%- item._id %></a></td>
+            <td><%- itemTitle %></td>
+            <td colspan="3">
+              <form action="<%- path.join(request.baseurl,item.entitytype,item._id.toString(),mfaStatus) %>" method="POST">
+                <input type="hidden" name="_csrf" value="<%- token %>"/>
+                <section>
+                  <input type="submit" style="margin:0;" value="<%- mfaStatus %>"/>
+                </section>
+              </form>
+            </td>
+          </tr>
+        <%});
+      } else{%>
+        <tr>
+          <td colspan="5">No <%- entityName.pluralCapitalized %></td>
+        </tr>
+      <%}%>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th><% if(entityPage.currentpage > 1){%>
+          <a href="?pagenum=<%- entityPage.currentpage-1 %>">Prev Page<a/>
+          <%} %>
+          </th>
+          <th>Page <%- entityPage.currentpage %> of <%- entityPage.totalpages %>
+          </th>
+          <th>Showing <%- (entityPage.limit > entityPage.count)? entityPage.count: entityPage.limit %> of <%- entityPage.count %></th>
+          <th>
+          <% if(entityPage.currentpage <= entityPage.totalpages -1){ %>
+            <a href="?pagenum=<%- entityPage.currentpage+1 %>">Next Page</a>
+          <% } %>
+          </th>
+          <th/>
+        </tr>
+      </tfoot>
+    </table>
+  </section>
+</article>
+<%- include('../../../../app/views/shared/footer') %>

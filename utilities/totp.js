@@ -49,6 +49,33 @@ function findKeyForUserId(options) {
   });
 };
 
+function setMFAStatus(options) {
+  const { id, status, entitytype } = options;
+  const coreDataModel = passportLocals.auth.getAuthCoreDataModel({
+    entitytype,
+  });
+  return new Promise((resolve, reject) => {
+    try {
+      coreDataModel.load({
+          query: { _id: id, },
+        })
+        .then(dbUser => {
+          dbUser.extensionattributes = Object.assign({}, dbUser.extensionattributes);
+          dbUser.extensionattributes.passport_mfa = Object.assign({}, dbUser.extensionattributes.passport_mfa, {
+            allow_new_code: status,
+          });
+          resolve(coreDataModel.update({
+            depopulate: false,
+            updatedoc: dbUser,
+          }));
+        })
+        .catch(reject);
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
 /**
  * saves token for MFA device
  * @param  {string}   userid  user mongo id
@@ -206,6 +233,7 @@ module.exports = {
   findKeyForUserId,
   saveKeyForUserId,
   generateMFAKey,
+  setMFAStatus,
   handleKeyGeneration,
   saveMFAToUser,
   saveMFAToUserAsync,

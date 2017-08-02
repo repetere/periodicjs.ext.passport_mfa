@@ -5,6 +5,7 @@ const utilities = require('../utilities');
 const passportExtSettings = periodic.settings.extensions['periodicjs.ext.passport'];
 const auth_route_prefix = passportExtSettings.routing.authenication_route_prefix;
 const auth_route = periodic.utilities.routing.route_prefix(auth_route_prefix);
+const routeUtils = periodic.utilities.routing;
 const passportLocals = periodic.locals.extensions.get('periodicjs.ext.passport');
 
 /**
@@ -68,8 +69,6 @@ function findUserForMFASetup(req, res) {
       return [req.user, data];
     }, e => Promisie.reject(e));
 };
-
-
 
 function mfaSetupPageAsync(req, res, next) {
   // console.log('mfa_setup_page_async req.user', req.user);
@@ -184,7 +183,6 @@ function mfaLoginPage(req, res, next) {
   // }
 };
 
-
 /**
  * in order to configure MFA you need to skip MFA check on setup pages
  * @param  {object}   req  express request
@@ -216,27 +214,27 @@ function userEditor(req, res, next) {
 };
 
 function setMfaStatus(req, res, next) {
-  req.controllerData = req.controllerData || {};
-  var controllerDataVariable = req.controllerData.login_mfa_user_variable || 'user';
-  req.controllerData.checkuservalidation = loginExtSettings.new_user_validation;
-  req.controllerData.checkuservalidation.useComplexity = loginExtSettings.complexitySettings.useComplexity;
-  req.controllerData.checkuservalidation.complexity = loginExtSettings.complexitySettings.settings.weak;
-
-  // req.body = req.controllerData.user;
-  req.body.docid = req.controllerData[controllerDataVariable]._id;
-  req.body.accounttype = req.controllerData[controllerDataVariable].accounttype;
-  req.body.email = req.controllerData[controllerDataVariable].email;
-  req.body.attributes = req.controllerData[controllerDataVariable].attributes;
-  req.body.extensionattributes = req.controllerData[controllerDataVariable].extensionattributes || {};
-  if (req.params.set_mfa_status === 'enable_mfa') {
-    req.body.extensionattributes.login_mfa.allow_new_code = true;
-  } else if (req.params.set_mfa_status === 'disable_mfa') {
-    req.body.extensionattributes.login_mfa.allow_new_code = false;
-  }
-
-  req.skippassword = true;
-  req.saverevision = false;
-  next();
+  const redirectURL = `/b-admin/ext/passport_mfa/standard_${req.params.entitytype}s`; //req.originalUrl;
+  utilities.totp.setMFAStatus({
+      id: req.params.id,
+      status: (req.params.set_mfa_status === 'enable') ? true : false,
+      entitytype: req.params.entitytype,
+    })
+    .then(result => {
+      // console.log({ result });
+      if (passportLocals.controller.jsonReq(req)) {
+        res.send(routeUtils.formatResponse({
+          result: 'success',
+          data: {
+            result,
+            redirect: redirectURL,
+          },
+        }));
+      } else {
+        res.redirect(redirectURL);
+      }
+    })
+    .catch(next);
 };
 
 function ensureAPIAuthenticated(req, res, next) {
