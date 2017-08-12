@@ -15,7 +15,7 @@ const passportLocals = periodic.locals.extensions.get('periodicjs.ext.passport')
  * @return {Function} next() callback
  */
 function totpCallback(req, res, next) {
-  console.log('IN TOTP CB')
+  // console.log('IN TOTP CB')
   const entitytype = passportLocals.auth.getEntityTypeFromReq({
     req,
     accountPath: passportLocals.paths.account_auth_login,
@@ -29,7 +29,7 @@ function totpCallback(req, res, next) {
     failureRedirect: loginFailureUrl,
     // failureFlash: 'Invalid MFA Token.'
   })(req, res, next);
-};
+}
 
 /**
  * set secondfact success to session and redirect to original url
@@ -38,7 +38,7 @@ function totpCallback(req, res, next) {
  * @return {null}        does not return a value
  */
 function totpSuccess(req, res) {
-  console.log('IN TOTP CB SUCCESS')
+  console.log('IN TOTP CB SUCCESS');
 
   let adminPostRoute = res.locals.adminPostRoute || 'auth';
 
@@ -46,29 +46,29 @@ function totpSuccess(req, res) {
   req.session.secondFactor = 'totp';
 
   res.redirect(loginUrl);
-};
+}
 
 function authenticateTotp(req, res, next) {
   let setStatus = function(result, status, data) {
-    return { result, status, data };
+    return { result, status, data, };
   };
   passport.authenticate('totp', (err, user, info) => {
-    if (err) res.status(500).send(setStatus('error', 500, { error: err.message, authenticated: false }));
+    if (err) res.status(500).send(setStatus('error', 500, { error: err.message, authenticated: false, }));
     else {
-      if (!user) res.status(401).send(setStatus('error', 401, { error: 'Unauthorized - Invalid MFA', authenticated: false }));
-      else res.status(200).send(setStatus('success', 200, { authenticated: true }));
+      if (!user) res.status(401).send(setStatus('error', 401, { error: 'Unauthorized - Invalid MFA', authenticated: false, }));
+      else res.status(200).send(setStatus('success', 200, { authenticated: true, }));
     }
   })(req, res, next);
-};
+}
 
 function findUserForMFASetup(req, res) {
   // console.log('findUserForMFASetup req.user', req.user);
   if (!Custom_User_Objects[req.user.entitytype]) Custom_User_Objects[req.user.entitytype] = mongoose.model(capitalize(req.user.entitytype));
   return Promisie.promisify(findKeyForUserId)(req.user)
     .then(data => {
-      return [req.user, data];
+      return [req.user, data,];
     }, e => Promisie.reject(e));
-};
+}
 
 function mfaSetupPageAsync(req, res, next) {
   // console.log('mfa_setup_page_async req.user', req.user);
@@ -82,7 +82,7 @@ function mfaSetupPageAsync(req, res, next) {
         qrImage: result.qr_image,
         svg_string: result.svg_string,
         svghtml: {
-          __html: result.svg_string
+          __html: result.svg_string,
         },
 
         // user: req.user,
@@ -93,11 +93,11 @@ function mfaSetupPageAsync(req, res, next) {
       res.status(400).send({
         result: 'error',
         data: {
-          error: e
-        }
+          error: e,
+        },
       });
     });
-};
+}
 
 /**
  * generates token for manual entry and qr image for google authenticator TOTP, if a user needs to reset token, user.extensionattibutes.login_mfa.allow_new_code must be set to 'true'
@@ -136,7 +136,7 @@ function mfaSetupPage(req, res, next) {
       // }, result);
     }).catch(next);
   // }
-};
+}
 
 /**
  * log into account with MFA token
@@ -157,7 +157,7 @@ function mfaLoginPage(req, res, next) {
     accountPath: passportLocals.paths.account_auth_login,
     userPath: passportLocals.paths.user_auth_login,
   });
-  utilities.totp.findKeyForUserId({ user: req.user })
+  utilities.totp.findKeyForUserId({ user: req.user, })
     .then(obj => {
       if (!obj || (obj && !obj.key)) {
         return res.redirect(passportLocals.paths[`${entitytype}_auth_login`] + '/login-otp-setup');
@@ -174,14 +174,15 @@ function mfaLoginPage(req, res, next) {
           },
           entityType: entitytype,
           passportUser: req.user,
-          adminPostRoute: passportLocals.paths[`${entitytype}_auth_login`] + '/login-otp',
+          adminPostRoute: passportLocals.paths[ `${entitytype}_auth_login` ] + '/login-otp',
+          mfaSetupPage: passportLocals.paths[`${entitytype}_auth_login`] + '/login-otp-setup',
         };
         periodic.core.controller.render(req, res, viewtemplate, viewdata);
       }
     })
     .catch(next);
   // }
-};
+}
 
 /**
  * in order to configure MFA you need to skip MFA check on setup pages
@@ -194,32 +195,32 @@ function skipMfaCheck(req, res, next) {
   req.controllerData = (req.controllerData) ? req.controllerData : {};
   req.controllerData.skip_mfa_check = true;
   next();
-};
+}
 
 function userEditor(req, res, next) {
   var viewtemplate = {
       viewname: 'p-admin/loginmfa/index',
       themefileext: appSettings.templatefileextension,
-      extname: 'periodicjs.ext.login_mfa'
+      extname: 'periodicjs.ext.login_mfa',
     },
     viewdata = merge(req.controllerData, {
       pagedata: {
         title: 'Login MFA',
         toplink: '&raquo; Login MFA',
-        extensions: CoreUtilities.getAdminMenu()
+        extensions: CoreUtilities.getAdminMenu(),
       },
-      user: req.user
+      user: req.user,
     });
   CoreController.renderView(req, res, viewtemplate, viewdata);
-};
+}
 
 function setMfaStatus(req, res, next) {
   const redirectURL = `/b-admin/ext/passport_mfa/standard_${req.params.entitytype}s`; //req.originalUrl;
   utilities.totp.setMFAStatus({
-      id: req.params.id,
-      status: (req.params.set_mfa_status === 'enable') ? true : false,
-      entitytype: req.params.entitytype,
-    })
+    id: req.params.id,
+    status: (req.params.set_mfa_status === 'enable') ? true : false,
+    entitytype: req.params.entitytype,
+  })
     .then(result => {
       // console.log({ result });
       if (passportLocals.controller.jsonReq(req)) {
@@ -235,7 +236,7 @@ function setMfaStatus(req, res, next) {
       }
     })
     .catch(next);
-};
+}
 
 function ensureAPIAuthenticated(req, res, next) {
   if (periodic.extensions.has('periodicjs.ext.oauth2server')) {
@@ -244,9 +245,11 @@ function ensureAPIAuthenticated(req, res, next) {
     // return oauth2authController.ensureApiAuthenticated;
     return oauth2authController.isJWTAuthenticated(req, res, next);
   } else {
-    return (req, res, next) => { next(); }
-  }
+    return (req, res, next) => {
+ next(); 
 };
+  }
+}
 
 module.exports = {
   totpCallback,
@@ -260,4 +263,4 @@ module.exports = {
   userEditor,
   setMfaStatus,
   ensureAPIAuthenticated,
-}
+};

@@ -1,7 +1,7 @@
 <%- include('../../../../app/views/shared/header') %>
 <%- include('../../../../app/views/shared/simple_nav') %>
 <% 
-//  console.log(locals) 
+  // console.log(locals) 
 /* console.log(locals) */ 
 %>
   <main>
@@ -24,7 +24,7 @@
         </section>
         <section>
           <p>Once you've added your MFA Token, continue to login</p>
-          <a href="/auth/login-otp" class="ts-button ts-text-lg ts-button-accent-color ">Multi-factor login</a>
+          <a href="<%- adminPostRoute %>" class="ts-button ts-text-lg ts-button-accent-color ">Multi-factor login</a>
         </section>
     </article>
   </main>
