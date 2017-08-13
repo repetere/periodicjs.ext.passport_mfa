@@ -24,7 +24,7 @@ function randomKey(len) {
   }
 
   return buf.join('');
-};
+}
 
 /**
  * returns MFA device code generation data, the key, allow_new_code and the time periodic.
@@ -47,18 +47,18 @@ function findKeyForUserId(options) {
       reject(e);
     }
   });
-};
+}
 
 function setMFAStatus(options) {
-  const { id, status, entitytype } = options;
+  const { id, status, entitytype, } = options;
   const coreDataModel = passportLocals.auth.getAuthCoreDataModel({
     entitytype,
   });
   return new Promise((resolve, reject) => {
     try {
       coreDataModel.load({
-          query: { _id: id, },
-        })
+        query: { _id: id, },
+      })
         .then(dbUser => {
           dbUser.extensionattributes = Object.assign({}, dbUser.extensionattributes);
           dbUser.extensionattributes.passport_mfa = Object.assign({}, dbUser.extensionattributes.passport_mfa, {
@@ -85,18 +85,18 @@ function setMFAStatus(options) {
 function saveKeyForUserId(options) {
   // console.log('saveKeyForUserId', { options });
   let { user, keydata, } = options;
-  const coreDataModel = passportLocals.auth.getAuthCoreDataModel({ entitytype: user.entitytype });
+  const coreDataModel = passportLocals.auth.getAuthCoreDataModel({ entitytype: user.entitytype, });
   return new Promise((resolve, reject) => {
     try {
       coreDataModel.load({
-          query: { _id: user._id, },
-        })
+        query: { _id: user._id, },
+      })
         .then(dbUser => {
           dbUser.extensionattributes = Object.assign({}, dbUser.extensionattributes);
           // console.log("typeof keydata.key !== 'string'", typeof keydata.key !== 'string');
           if (typeof keydata.key !== 'string') {
             keydata = Object.assign({}, keydata, {
-              key: keydata.key //.toString(),
+              key: keydata.key, //.toString(),
             });
           }
           dbUser.extensionattributes.passport_mfa = keydata;
@@ -111,7 +111,7 @@ function saveKeyForUserId(options) {
       reject(e);
     }
   });
-};
+}
 
 function generateMFAKey(user, data) {
   // console.log('generateMFAKey', { user, data });
@@ -120,7 +120,7 @@ function generateMFAKey(user, data) {
   // console.log('base32.encode(base32.decode(data.key))', base32.encode(base32.decode(data.key)))
   let encoded = (data.key) ? base32.encode(base32.decode(data.key)) : base32.encode(randkey);
   let otpUrl = `otpauth://totp/${ user.email }?secret=${ encoded }&period=${ data.period || 30 }&issuer=${ encodeURIComponent(appSettings.name) }`;
-  let svg_string = qr.imageSync((otpUrl), { type: 'svg' });
+  let svg_string = qr.imageSync((otpUrl), { type: 'svg', });
   let image = `https://chart.googleapis.com/chart?chs=512x512&chld=L|0&cht=qr&chl=${ encodeURIComponent(otpUrl) }`;
   return {
     user,
@@ -129,9 +129,9 @@ function generateMFAKey(user, data) {
     encodedKey: base32.encode(randkey).toString(),
     qr_image: image,
     data,
-    svg_string
+    svg_string,
   };
-};
+}
 
 function handleKeyGeneration(options) {
   const { user, } = options;
@@ -153,7 +153,7 @@ function handleKeyGeneration(options) {
       reject(e);
     }
   });
-};
+}
 
 function saveMFAToUser(options = {}) {
   // console.log('saveMFAToUser', { options });
@@ -161,34 +161,34 @@ function saveMFAToUser(options = {}) {
     try {
       if (!options.saveUser) return resolve(options);
       saveKeyForUserId({
-          user: options.user,
-          keydata: {
+        user: options.user,
+        keydata: {
             encodedKey: options.encodedKey,
             key: options.key,
-            period: 30
+            period: 30,
           },
-        })
+      })
         .then(() => resolve(options))
         .catch(reject);
     } catch (e) {
       reject(e);
     }
   });
-};
+}
 
 function saveMFAToUserAsync(options = {}) {
   // console.log('saveMFAToUserAsync', { options });
-  return Promisie.promisify(saveKeyForUserId)(options.user, { key: base32.decode(options.key).toString(), period: 30 }, options.user.entitytype)
+  return Promisie.promisify(saveKeyForUserId)(options.user, { key: base32.decode(options.key).toString(), period: 30, }, options.user.entitytype)
     .then(() => options)
     .catch(e => Promisie.reject(e));
-};
+}
 
 function totpStategyCallback(user, done) {
-  console.log('STRAT CALLBACK', { user });
+  // console.log('STRAT CALLBACK', { user });
   // setup function, supply key and period to done callback
-  findKeyForUserId({ user })
+  findKeyForUserId({ user, })
     .then(obj => {
-      console.log({ obj });
+      console.log({ obj, });
       return done(null, obj.key, obj.period);
     })
     .catch(done);
@@ -204,8 +204,8 @@ function mfaSetup(req, res) {
       });
       const adminPostRoute = passportLocals.paths[`${entitytype}_auth_login`] + '/login-otp';
       handleKeyGeneration({
-          user: req.user,
-        })
+        user: req.user,
+      })
         .then(saveMFAToUser)
         .then(result => {
           return resolve({
@@ -226,7 +226,7 @@ function mfaSetup(req, res) {
       reject(e);
     }
   });
-};
+}
 
 module.exports = {
   randomKey,

@@ -3,6 +3,7 @@ const periodic = require('periodicjs');
 const passport = periodic.locals.extensions.get('periodicjs.ext.passport').passport;
 const utilities = require('../utilities');
 const passportExtSettings = periodic.settings.extensions['periodicjs.ext.passport'];
+const passportMFAExtSettings = periodic.settings.extensions['periodicjs.ext.passport_mfa'];
 const auth_route_prefix = passportExtSettings.routing.authenication_route_prefix;
 const auth_route = periodic.utilities.routing.route_prefix(auth_route_prefix);
 const routeUtils = periodic.utilities.routing;
@@ -21,9 +22,11 @@ function totpCallback(req, res, next) {
     accountPath: passportLocals.paths.account_auth_login,
     userPath: passportLocals.paths.user_auth_login,
   });
-  const adminPostRoute = passportLocals.paths[`${entitytype}_auth_login`] + '/login-otp';
-  const loginFailureUrl = (req.session.return_url) ?
-    adminPostRoute + '?return_url=' + req.session.return_url : loginFailureUrl;
+  const adminPostRoute = passportLocals.paths[ `${entitytype}_auth_login` ] + '/login-otp';
+  const loginFailureUrl = (req.session.return_url)
+    ? adminPostRoute + '?return_url=' + req.session.return_url + '&msg=mfafail'
+    : adminPostRoute + (adminPostRoute.indexOf('?') === -1) ? '?msg=mfafail' : '&msg=mfafail';
+  // console.log({ adminPostRoute, loginFailureUrl });
 
   passport.authenticate('totp', {
     failureRedirect: loginFailureUrl,
@@ -38,13 +41,16 @@ function totpCallback(req, res, next) {
  * @return {null}        does not return a value
  */
 function totpSuccess(req, res) {
-  console.log('IN TOTP CB SUCCESS');
-
-  let adminPostRoute = res.locals.adminPostRoute || 'auth';
-
-  var loginUrl = (req.session.return_url && req.session.return_url !== '/' + adminPostRoute + '/login-otp') ? req.session.return_url : loginExtSettings.settings.authLoggedInHomepage;
+  // console.log('IN TOTP CB SUCCESS');
+  const adminPostRoute = res.locals.adminPostRoute || 'auth';
+  const entitytype = passportLocals.auth.getEntityTypeFromReq({
+    req,
+    accountPath: passportLocals.paths.account_auth_login,
+    userPath: passportLocals.paths.user_auth_login,
+  });
+  const loggedInHomePage = passportLocals.getSettings().redirect[entitytype].logged_in_homepage;
+  const loginUrl = (req.session.return_url && req.session.return_url !== '/' + adminPostRoute + '/login-otp') ? req.session.return_url : loggedInHomePage;
   req.session.secondFactor = 'totp';
-
   res.redirect(loginUrl);
 }
 
@@ -168,6 +174,7 @@ function mfaLoginPage(req, res, next) {
           extname: 'periodicjs.ext.passport_mfa',
           // fileext,
         };
+        const flashMsg = (req.query.msg) ? req.query.msg.toString() : false;
         const viewdata = {
           pagedata: {
             title: 'Multi-Factor Authenticator',
@@ -175,7 +182,8 @@ function mfaLoginPage(req, res, next) {
           entityType: entitytype,
           passportUser: req.user,
           adminPostRoute: passportLocals.paths[ `${entitytype}_auth_login` ] + '/login-otp',
-          mfaSetupPage: passportLocals.paths[`${entitytype}_auth_login`] + '/login-otp-setup',
+          mfaSetupPage: passportLocals.paths[ `${entitytype}_auth_login` ] + '/login-otp-setup',
+          notification: (flashMsg) ? passportMFAExtSettings.notifications[ flashMsg ] : false,
         };
         periodic.core.controller.render(req, res, viewtemplate, viewdata);
       }
@@ -246,8 +254,8 @@ function ensureAPIAuthenticated(req, res, next) {
     return oauth2authController.isJWTAuthenticated(req, res, next);
   } else {
     return (req, res, next) => {
- next(); 
-};
+      next();
+    };
   }
 }
 
