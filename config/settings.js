@@ -2,7 +2,9 @@
 
 module.exports = {
   settings: {
-    defaults:true,
+    notifications: {
+      mfafail:'Invalid MFA Token'
+    },
   },
   databases: {
   },
