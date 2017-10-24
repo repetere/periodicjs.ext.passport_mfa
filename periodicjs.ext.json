@@ -7,6 +7,12 @@
   "periodic_type": 2,
   "periodic_priority": 20,
   "periodic_config": {
+    "periodicjs_ext_reactapp": {
+      "navigation": "node_modules/periodicjs.ext.passport_mfa/views/reactapp/components/navigation.manifest.js",
+      "manifests" : [ 
+        "node_modules/periodicjs.ext.passport_mfa/views/reactapp/manifests/"
+      ]
+    },
     "periodicjs_ext_admin": {
       "Multi-Factor Authentication": [{
         "link": "/b-admin/ext/passport_mfa/standard_accounts",
