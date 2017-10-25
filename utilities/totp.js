@@ -139,14 +139,16 @@ function generateMFAKey(user, data) {
 
 function handleKeyGeneration(options) {
   const { user, } = options;
+  // console.log({user})
   return new Promise((resolve, reject) => {
     try {
       findKeyForUserId(options)
-        .then(data => {
+      .then(data => {
+        // console.log({data})
           // user, data
           // console.log('handleKeyGeneration', { data });
           if (data && data.key) {
-            if (data.allow_new_code !== true) {
+            if (data.allow_new_code === false) {
               return reject(new Error('User is not eligible for a new mfa token setup, please contact your admin'));
             }
           }
