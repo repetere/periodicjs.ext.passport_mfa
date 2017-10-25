@@ -19,16 +19,8 @@ if (periodic.extensions.has('periodicjs.ext.reactapp') && periodic.extensions.ha
   mfaExtRouter.post('/:entitytype/:id/:set_mfa_status', controllers.mfa.setMfaStatus);  
   
   extensionRouter.use(`${reactapp.manifest_prefix}ext/passport_mfa`,
-    (req, res, next) => {
-      console.log('in reactapp before auth');
-      next();
-    },  
     oauth2ServerControllers.auth.ensureApiAuthenticated,
     uacControllers.loadUserRoles,
-    (req, res, next) => {
-      console.log('after auth',req.user);
-      next();
-    }, 
     mfaExtRouter);
 }
 
