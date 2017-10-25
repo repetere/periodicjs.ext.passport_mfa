@@ -114,19 +114,23 @@ function saveKeyForUserId(options) {
 }
 
 function generateMFAKey(user, data) {
-  // console.log('generateMFAKey', { user, data });
+  // console.log('generateMFAKey', user.extensionattributes);
+  // console.log({ appSettings, data }); 
   let randkey = randomKey(10);
+  // console.log({ data, randkey }); 
   // console.log('base32.encode(data.key)', base32.encode(data.key));
   // console.log('base32.encode(base32.decode(data.key))', base32.encode(base32.decode(data.key)))
-  let encoded = (data.key) ? base32.encode(base32.decode(data.key)) : base32.encode(randkey);
-  let otpUrl = `otpauth://totp/${ user.email }?secret=${ encoded }&period=${ data.period || 30 }&issuer=${ encodeURIComponent(appSettings.name) }`;
+  // let encoded = base32.encode(randkey);
+  let encoded = (data.key) ? base32.encode(data.key) : base32.encode(randkey);
+  // let encoded = (data.key) ? base32.encode(base32.decode(data.key)) : base32.encode(randkey);
+  let otpUrl = `otpauth://totp/${ user.email }?secret=${ encoded }&period=${ data.period || 30 }&issuer=${ encodeURIComponent(appSettings.name+'['+appSettings.application.environment+']') }`;
   let svg_string = qr.imageSync((otpUrl), { type: 'svg', });
   let image = `https://chart.googleapis.com/chart?chs=512x512&chld=L|0&cht=qr&chl=${ encodeURIComponent(otpUrl) }`;
   return {
     user,
     saveUser: (!data.key),
     key: randkey,
-    encodedKey: base32.encode(randkey).toString(),
+    encodedKey: encoded.toString(),
     qr_image: image,
     data,
     svg_string,

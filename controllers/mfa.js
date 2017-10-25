@@ -122,24 +122,32 @@ function mfaSetupPage(req, res, next) {
 
   utilities.totp.mfaSetup(req, res)
     .then(result => {
-      const viewtemplate = {
-        // themename,
-        viewname: 'user/passport-mfa-setup',
-        extname: 'periodicjs.ext.passport_mfa',
-        // fileext,
-      };
-      const viewdata = Object.assign({
-        pagedata: {
-          title: 'Multi-Factor Authenticator',
-        },
-      }, result);
-      periodic.core.controller.render(req, res, viewtemplate, viewdata);
-
-      // CoreController.renderView(req, res, {
-      //   viewname: 'user/login-mfa-setup',
-      //   themefileext: appSettings.templatefileextension,
-      //   extname: 'periodicjs.ext.login_mfa'
-      // }, result);
+      if (periodic.utilities.middleware.jsonReq(req)) {
+        res.send(routeUtils.formatResponse({
+          result: 'success',
+          data: Object.assign({
+            // decodedKey: base32.decode(result.key).toString(),
+            qrImage: result.qr_image,
+            svg_string: result.svg_string,
+            svghtml: {
+              __html: result.svg_string,
+            },
+          }, req.params, req.query, req.controllerData, result),
+        }));
+      } else {
+        const viewtemplate = {
+          // themename,
+          viewname: 'user/passport-mfa-setup',
+          extname: 'periodicjs.ext.passport_mfa',
+          // fileext,
+        };
+        const viewdata = Object.assign({
+          pagedata: {
+            title: 'Multi-Factor Authenticator',
+          },
+        }, result);
+        periodic.core.controller.render(req, res, viewtemplate, viewdata);
+      }
     }).catch(next);
   // }
 }
@@ -248,14 +256,12 @@ function setMfaStatus(req, res, next) {
 
 function ensureAPIAuthenticated(req, res, next) {
   if (periodic.extensions.has('periodicjs.ext.oauth2server')) {
-    const oauth2authController = periodic.controllers.extension.get('periodicjs.ext.oauth2server'); //periodic.app.controller.extension.oauth2server.auth;
+    const oauth2authController = periodic.controllers.extension.get('periodicjs.ext.oauth2server').auth; //periodic.app.controller.extension.oauth2server.auth;
     // console.log('ensureAPIAuthenticated', { oauth2authController });
     // return oauth2authController.ensureApiAuthenticated;
     return oauth2authController.isJWTAuthenticated(req, res, next);
   } else {
-    return (req, res, next) => {
-      next();
-    };
+    next(new Error('Invalid extension configuration, missing oauth2server'));
   }
 }
 
