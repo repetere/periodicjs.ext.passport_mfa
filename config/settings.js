@@ -5,6 +5,7 @@ module.exports = {
     notifications: {
       mfafail:'Invalid MFA Token'
     },
+    enforce_mfa:true,
   },
   databases: {
   },
