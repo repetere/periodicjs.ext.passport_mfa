@@ -315,9 +315,6 @@ function getButton(options = {}) {
   return returnButton;
 }
 
-
-
-
 function getModalPage(options) {
   const { entity } = options;
   const entityDisplay = getEntityDisplay(entity);
@@ -340,11 +337,15 @@ function getModalPage(options) {
   };
 }
 
+const mfaSettings = periodic.settings.extensions[ 'periodicjs.ext.passport_mfa' ];
+
 module.exports = {
-  containers: {
-    [ `${reactapp.manifest_prefix}ext/passport_mfa/standard_accounts` ]: getAccessPage({ entity: 'account' }),
-    [ `${reactapp.manifest_prefix}ext/passport_mfa/standard_users` ]: getAccessPage({ entity: 'user' }),
-    // [ `${reactapp.manifest_prefix}edit-account-access/:id` ]: getModalPage({ entity: 'account' }),
-    // [ `${reactapp.manifest_prefix}edit-user-access/:id` ]: getModalPage({ entity: 'user' }),
-  },
+  containers: (mfaSettings.use_manifests)
+    ? {
+      [ `${reactapp.manifest_prefix}ext/passport_mfa/standard_accounts` ]: getAccessPage({ entity: 'account' }),
+      [ `${reactapp.manifest_prefix}ext/passport_mfa/standard_users` ]: getAccessPage({ entity: 'user' }),
+      // [ `${reactapp.manifest_prefix}edit-account-access/:id` ]: getModalPage({ entity: 'account' }),
+      // [ `${reactapp.manifest_prefix}edit-user-access/:id` ]: getModalPage({ entity: 'user' }),
+    }
+    : {},
 };

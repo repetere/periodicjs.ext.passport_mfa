@@ -4,7 +4,6 @@ const reactappLocals = periodic.locals.extensions.get('periodicjs.ext.reactapp')
 const reactapp = reactappLocals.reactapp();
 const hrline = require('periodicjs.ext.passport/views/reactapp/components/hrline');
 
-
 let mfaLayout = {
   component: 'Hero',
   props: {
@@ -162,40 +161,45 @@ let mfaLayout = {
     },],
   },],
 };
+
+const mfaSettings = periodic.settings.extensions[ 'periodicjs.ext.passport_mfa' ];
+
 module.exports = {
-  containers: {
-    [`${reactapp.manifest_prefix}auth/login-otp`]: {
-      'layout': mfaLayout,
-      'resources': {
-        // mfadata: '/auth/login-otp-setup-async',
+  containers: (mfaSettings.use_manifests)
+    ? {
+      [ `${reactapp.manifest_prefix}auth/login-otp` ]: {
+        'layout': mfaLayout,
+        'resources': {
+          // mfadata: '/auth/login-otp-setup-async',
+        },
+        'onFinish': 'render',
+        'pageData': {
+          'title': 'Multi-Factor Authentication',
+          'navLabel': 'Multi-Factor Authentication',
+        },
       },
-      'onFinish': 'render',
-      'pageData': {
-        'title': 'Multi-Factor Authentication',
-        'navLabel': 'Multi-Factor Authentication',
+      [ `${reactapp.manifest_prefix}mfa` ]: {
+        'layout': mfaLayout,
+        'resources': {
+          // mfadata: '/auth/login-otp-setup-async',
+        },
+        'onFinish': 'render',
+        'pageData': {
+          'title': 'Multi-Factor Authentication',
+          'navLabel': 'Multi-Factor Authentication',
+        },
       },
-    },
-    [`${reactapp.manifest_prefix}mfa`]: {
-      'layout': mfaLayout,
-      'resources': {
-        // mfadata: '/auth/login-otp-setup-async',
+      [ '/mfa' ]: {
+        'layout': mfaLayout,
+        'resources': {
+          // mfadata: '/auth/login-otp-setup-async',
+        },
+        'onFinish': 'render',
+        'pageData': {
+          'title': 'Multi-Factor Authentication',
+          'navLabel': 'Multi-Factor Authentication',
+        },
       },
-      'onFinish': 'render',
-      'pageData': {
-        'title': 'Multi-Factor Authentication',
-        'navLabel': 'Multi-Factor Authentication',
-      },
-    },
-    ['/mfa']: {
-      'layout': mfaLayout,
-      'resources': {
-        // mfadata: '/auth/login-otp-setup-async',
-      },
-      'onFinish': 'render',
-      'pageData': {
-        'title': 'Multi-Factor Authentication',
-        'navLabel': 'Multi-Factor Authentication',
-      },
-    },
-  },
+    }
+    : {},
 };
